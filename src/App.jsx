@@ -2,42 +2,72 @@ import { useState } from 'react'
 import { useEffect } from 'react';
 import './App.css'
 import TodoItem from './components/TodoItem'
+import UserDropdown from './components/UserDropdown';
 
 function App() {
   const [textInput, setTextInput] = useState("");
+  const [userList, setUserList] = useState([]);
   const [todoList, setTodoList] = useState([]);
 
-  const getData = async () => {
-    const response = await fetch('https://playground.4geeks.com/todo/users/meItsMe');
+  const getUsers = async () => {
+    const response = await fetch('https://playground.4geeks.com/todo/users');
+    if(response.ok) {
+        const userData = await response.json();
+        return userData;
+    } else {
+      console.log('error: ', response.status, response.statusText);
+      return {error: {status: response.status, statusText: response.statusText}};
+    }
+  }
+  
+  const getTodos = async (user) => {
+    const response = await fetch(`https://playground.4geeks.com/todo/users/${user.name}`);
     if (response.ok) {
         const data = await response.json();
+        console.log("We got data.")
+        console.log(data);
         return data;
     } else {
         console.log('error: ', response.status, response.statusText);
-        /* Handle the error returned by the HTTP request */
-        return {error: {status: response.status, statusText: response.statusText}};
+        return { todos: []};
     };
-};
+  };
 
   useEffect(() => {
-    const fetchTodos = async () => {
-      const data = await getData();
-      if(data.todos){
-        setTodoList(
-          data.todos.map(todo => ({
-            id: todo.id,
-            text: todo.label,
-            isComplete: todo.is_done
-          }))
-        );
-      } else {
-        console.log("No todos found or there was an error");
-      }
-    };
+    const fetchUsers = async () => {
+      const userData = await getUsers();
 
-    fetchTodos();
+      if(userData.users) {
+        setUserList(userData.users.map(user => ({
+          id: user.id,
+          name: user.name
+        })));
+      } else {
+        console.log("No users found or there was an error");
+        setUserList([userListFromServer]);
+      }
+    }
+
+    fetchUsers();
   },[]);
 
+  const handleUserSelect = async (user) => {
+    console.log(`The selected User is: ${user.name}`);
+    
+    const todoData = await getTodos(user);
+
+    setTodoList(
+      todoData.todos.map(todo => ({
+        id: todo.id,
+        text: todo.label,
+        isComplete: todo.is_done
+      }))
+    );
+  }
+
+  const handleAddUser = () => {
+    console.log("Open Add User Modal or Redirect");
+  }
 
   const handleAdd = (e) => {
     if(e.key === "Enter"){
@@ -46,31 +76,6 @@ function App() {
         text: textInput ,
         isComplete: false
       };
-
-      /*
-      fetch('https://playground.4geeks.com/todo/todos/meItsMe', {
-        method: "POST",
-        body: JSON.stringify(todo),
-        headers: {
-          "Content-Type": "application/json"
-        }
-      })
-      .then(resp => {
-          console.log(resp.ok); // Will be true if the response is successful
-          console.log(resp.status); // The status code=201 or code=400 etc.
-          console.log(resp.text()); // Will try to return the exact result as a string
-          return resp.json(); // (returns promise) Will try to parse the result as JSON and return a promise that you can .then for results
-      })
-      .then(data => {
-          // Here is where your code should start after the fetch finishes
-          console.log(data); // This will print on the console the exact object received from the server
-      })
-      .catch(error => {
-          // Error handling
-          console.error(error);
-      });
-      */
-
 
       setTodoList([newTodo, ...todoList]);
       setTextInput("");
@@ -85,9 +90,16 @@ function App() {
     setTodoList(todoList.filter(todo => todo.id !== id));
   }
 
+
   return (
     <>
     <div className='container myContainer'>
+      <h1>Awesome Todo List!</h1>
+      <UserDropdown 
+        users={userList} 
+        onUserSelect={handleUserSelect} 
+        onAddUser={handleAddUser}
+      />
       <ul className='list-group'>
         <li className='list-group-item'>
         <input 
