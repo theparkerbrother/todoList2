@@ -65,7 +65,7 @@ function App() {
     );
   }
 
-  const handleAddUser = () => {
+  const handleAddUser = async () => {
     console.log("Open Add User Modal or Redirect");
   }
 
