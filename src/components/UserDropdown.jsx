@@ -26,12 +26,11 @@ const UserDropdown = ({ users, onUserSelect, onAddUser }) => {
     }
   };
   
-
   return (
     
-    <div className="dropdown mb-5">
+    <div className="dropdown mb-3 mt-3">
       <button
-        className="btn btn-secondary dropdown-toggle"
+        className="btn btn-secondary dropdown-toggle myButton"
         type="button"
         id="dropdownMenuButton"
         data-bs-toggle="dropdown"

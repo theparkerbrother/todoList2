@@ -8,6 +8,7 @@ function App() {
   const [textInput, setTextInput] = useState("");
   const [userList, setUserList] = useState([]);
   const [todoList, setTodoList] = useState([]);
+  const [selectedUser, setSelectedUser] = useState([]);
 
   const getUsers = async () => {
     console.log("We are in getUsers...")
@@ -34,6 +35,20 @@ function App() {
     };
   };
 
+  const addToDo = async (todo) => {
+    const apiUrl = `https://playground.4geeks.com/todo/users/${user.name}`;
+    const repsonse = await fetch(apiUrl, {
+      method: 'Post',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: json.stringify({
+        label: todo,
+        is_done: false
+      })
+    });
+  }
+
   const updateUserListDropdown = (usersArray) => {
       if(usersArray) {
         setUserList(usersArray.map(user => ({
@@ -45,22 +60,23 @@ function App() {
       }
   }
 
+  const updateToDoList = async (user) => {
+    const todoData = await getTodos(user);
+
+    setTodoList(
+      todoData.todos.map(todo => ({
+        id: todo.id,
+        label: todo.label,
+        is_done: todo.is_done
+      }))
+    );
+  }
+
   useEffect(() => {
     const fetchUsers = async () => {
       const userData = await getUsers();
 
       updateUserListDropdown(userData.users);
-      /*
-      if(userData.users) {
-        setUserList(userData.users.map(user => ({
-          id: user.id,
-          name: user.name
-        })));
-      } else {
-        console.log("No users found or there was an error");
-        //setUserList([userListFromServer]);
-      }
-      */
     }
 
     fetchUsers();
@@ -68,7 +84,9 @@ function App() {
 
   const handleUserSelect = async (user) => {
     console.log(`The selected User is: ${user.name}`);
-    
+    setSelectedUser[user];
+    updateToDoList(user);
+    /*
     const todoData = await getTodos(user);
 
     setTodoList(
@@ -78,6 +96,7 @@ function App() {
         isComplete: todo.is_done
       }))
     );
+    */
   }
 
   const onAddUser = async (username) => {
@@ -129,18 +148,19 @@ function App() {
   const handleAdd = (e) => {
     if(e.key === "Enter"){
       const newTodo = {
-        id: Date.now(),
-        text: textInput ,
-        isComplete: false
+        //id: Date.now(),
+        label: textInput ,
+        is_done: false
       };
 
+      add
       setTodoList([newTodo, ...todoList]);
       setTextInput("");
     }
   }
 
   const handleToggle = (id) => {
-    setTodoList(todoList.map(todo => todo.id === id ? { ...todo, isComplete: !todo.isComplete }: todo));
+    setTodoList(todoList.map(todo => todo.id === id ? { ...todo, is_done: !todo.is_done }: todo));
   };
 
   const handleDelete = (id) => {
@@ -151,7 +171,7 @@ function App() {
   return (
     <>
     <div className='container myContainer'>
-      <h1>Awesome Todo List!</h1>
+      <h1>Todo List 2</h1>
       <UserDropdown 
         users={userList} 
         onUserSelect={handleUserSelect} 
@@ -173,8 +193,8 @@ function App() {
           <TodoItem
             key = {todo.id}
             id = {todo.id}
-            text = {todo.text}
-            isComplete = {todo.isComplete}
+            label = {todo.label}
+            is_done = {todo.is_done}
             handleToggle = {handleToggle}
             handleDelete = {handleDelete}
           />
