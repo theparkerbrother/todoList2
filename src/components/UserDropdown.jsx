@@ -14,6 +14,8 @@ const UserDropdown = ({ users, onUserSelect, onAddUser }) => {
         console.log(`New user name: ${userName}`);
         // Call your function to add a new user (e.g., save to state or server)
         onAddUser(userName);
+
+        setSelectedUser({ name: userName });
       }
     } else {
       setSelectedUser(user); // Update selected user state

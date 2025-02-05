@@ -10,6 +10,7 @@ function App() {
   const [todoList, setTodoList] = useState([]);
 
   const getUsers = async () => {
+    console.log("We are in getUsers...")
     const response = await fetch('https://playground.4geeks.com/todo/users');
     if(response.ok) {
         const userData = await response.json();
@@ -33,10 +34,23 @@ function App() {
     };
   };
 
+  const updateUserListDropdown = (usersArray) => {
+      if(usersArray) {
+        setUserList(usersArray.map(user => ({
+          id: user.id,
+          name: user.name
+        })));
+      } else {
+        console.log("No users found");
+      }
+  }
+
   useEffect(() => {
     const fetchUsers = async () => {
       const userData = await getUsers();
 
+      updateUserListDropdown(userData.users);
+      /*
       if(userData.users) {
         setUserList(userData.users.map(user => ({
           id: user.id,
@@ -44,8 +58,9 @@ function App() {
         })));
       } else {
         console.log("No users found or there was an error");
-        setUserList([userListFromServer]);
+        //setUserList([userListFromServer]);
       }
+      */
     }
 
     fetchUsers();
@@ -65,9 +80,51 @@ function App() {
     );
   }
 
-  const handleAddUser = async () => {
-    console.log("Open Add User Modal or Redirect");
-  }
+  const onAddUser = async (username) => {
+    const apiUrl = `https://playground.4geeks.com/todo/users/${username}`;
+
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: username }) 
+        });
+
+        const data = await response.json(); // Parse JSON response
+        console.log('API Response:', data);
+
+        if (response.ok) {
+            console.log('User created:', data);
+
+            // Fetch updated users list (assuming you have a getUsers function)
+            const userFetch = await getUsers();
+            const updatedUsers = userFetch.users;
+
+            console.log("we finished getting the users...")
+            // Find the newly created user in the updated list
+            console.log("And the user list is...", updatedUsers);
+
+            updateUserListDropdown(updatedUsers);
+            console.log("User list should have the new name.");
+
+            const newUser = updatedUsers.find(user => user.name === username);
+
+            if (newUser) {
+                handleUserSelect(newUser); // Automatically select the new user
+            }
+        } else if (data.detail === "User already exists") {
+            console.log('User already exists.');
+        } else {
+            console.error('Unexpected error:', data);
+        }
+    } catch (error) {
+        console.error('Error handling user:', error);
+    }
+};
+
+
 
   const handleAdd = (e) => {
     if(e.key === "Enter"){
@@ -98,7 +155,7 @@ function App() {
       <UserDropdown 
         users={userList} 
         onUserSelect={handleUserSelect} 
-        onAddUser={handleAddUser}
+        onAddUser={onAddUser}
       />
       <ul className='list-group'>
         <li className='list-group-item'>
