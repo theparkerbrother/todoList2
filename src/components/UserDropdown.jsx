@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 
-const UserDropdown = ({ users, onUserSelect, onAddUser }) => {
+const UserDropdown = ({ users, selectedUser, onUserSelect, onAddUser }) => {
   // State to track the selected user
-  const [selectedUser, setSelectedUser] = useState(null);
+  //const [selectedUser, setSelectedUser] = useState(null);
 
   // Handle the selection of a user
   const handleUserSelect = (user) => {
@@ -15,10 +15,9 @@ const UserDropdown = ({ users, onUserSelect, onAddUser }) => {
         // Call your function to add a new user (e.g., save to state or server)
         onAddUser(userName);
 
-        setSelectedUser({ name: userName });
+        //setSelectedUser({ name: userName });
       }
     } else {
-      setSelectedUser(user); // Update selected user state
       if (onUserSelect) {
         console.log(`The selected User is: ${user.name}`); // Debugging log
         onUserSelect(user);

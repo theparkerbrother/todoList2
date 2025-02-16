@@ -240,7 +240,36 @@ function App() {
       console.error("Failed to delete todo:", error);
       throw error;
     }
-  }
+  };
+
+  const handleDeleteUser = async () => {
+    console.log(`I'm in handleDeleteUser`);
+    try {
+      const apiUrl = `https://playground.4geeks.com/todo/users/${selectedUser.name}`;
+      const response = await fetch(apiUrl, {
+        method: 'DELETE',
+        headers: {
+          'accept': 'application/json',
+        },
+      })
+
+      console.log(`The response from the User DELETE is:`,response);
+
+      if (!response.ok){
+        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+      }
+
+      setTodoList([]);
+      setSelectedUser(null);
+      const userData = await getUsers();
+      setUserList(userData.users);
+
+
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+      throw error;
+    }
+  };
 
 
   return (
@@ -248,10 +277,14 @@ function App() {
     <div className='container myContainer'>
       <h1>Todo List 2</h1>
       <UserDropdown 
-        users={userList} 
+        users={userList}
+        selectedUser={selectedUser} 
         onUserSelect={handleUserSelect} 
         onAddUser={onAddUser}
       />
+      <button className="btn btn-danger mb-3" onClick={handleDeleteUser}>
+        <i className="fa-solid fa-user-slash"></i> Delete User
+      </button>
       <ul className='list-group'>
         <li className='list-group-item'>
         <input 
