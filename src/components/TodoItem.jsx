@@ -6,7 +6,7 @@ const TodoItem = ({ id, label, is_done, handleDelete, handleToggle}) => {
                     className="form-check-input me-2" 
                     type="checkbox" 
                     checked={is_done} 
-                    onChange={() => handleToggle(id)}
+                    onChange={() => handleToggle(id, is_done)}
                 />
                 <div className={`text-start flex-grow-1 ${is_done ? 'text-decoration-line-through' : ''}`}>
                     {label}

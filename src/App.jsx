@@ -8,7 +8,7 @@ function App() {
   const [textInput, setTextInput] = useState("");
   const [userList, setUserList] = useState([]);
   const [todoList, setTodoList] = useState([]);
-  const [selectedUser, setSelectedUser] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const getUsers = async () => {
     console.log("We are in getUsers...")
@@ -36,18 +36,65 @@ function App() {
   };
 
   const addToDo = async (todo) => {
-    const apiUrl = `https://playground.4geeks.com/todo/users/${user.name}`;
-    const repsonse = await fetch(apiUrl, {
-      method: 'Post',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: json.stringify({
-        label: todo,
-        is_done: false
+    console.log("I'm in addToDo");
+    console.log("The todo I am adding is",todo);
+    try {
+      const apiUrl = `https://playground.4geeks.com/todo/todos/${selectedUser.name}`;
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          label: todo.label,
+          is_done: false
+        })
+      });
+      
+      console.log(response);
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+      }
+  
+      const data = await response.json();
+      console.log("To-Do added:", data);
+      return data;
+    } catch (error) {
+      console.error("Failed to add To-Do:", error);
+      throw error;
+    }
+  };
+
+  const toggleTodo = async (id , newCheckedValue) => {
+    console.log(`I'm in toggleTodo, the id is ${id}, the newCheckedValue is ${newCheckedValue}`);
+    try {
+      const apiUrl = `https://playground.4geeks.com/todo/todos/${id}`;
+      const response = await fetch(apiUrl, {
+        method: 'PUT',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          is_done: newCheckedValue
+        })
       })
-    });
-  }
+
+      console.log(`The respons from the toggle update is:`,response);
+
+      if (!response.ok){
+        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+      }
+
+      setTodoList(todoList.map(todo => todo.id === id ? { ...todo, is_done: !todo.is_done }: todo));
+
+    } catch (error) {
+      console.error("Failed to toggle todo:", error);
+      throw error;
+    }
+  };
+  
 
   const updateUserListDropdown = (usersArray) => {
       if(usersArray) {
@@ -84,7 +131,7 @@ function App() {
 
   const handleUserSelect = async (user) => {
     console.log(`The selected User is: ${user.name}`);
-    setSelectedUser[user];
+    setSelectedUser(user);
     updateToDoList(user);
     /*
     const todoData = await getTodos(user);
@@ -97,6 +144,7 @@ function App() {
       }))
     );
     */
+   console.log(`selected user, from useState is`,selectedUser)
   }
 
   const onAddUser = async (username) => {
@@ -141,30 +189,57 @@ function App() {
     } catch (error) {
         console.error('Error handling user:', error);
     }
-};
+  };
 
 
 
-  const handleAdd = (e) => {
-    if(e.key === "Enter"){
+  const handleAdd = async (e) => {
+    //console.log("SelectedUser is",selectedUser);
+    if (e.key === "Enter" && selectedUser) {
       const newTodo = {
-        //id: Date.now(),
-        label: textInput ,
+        // id: Date.now(), // You might not need this if the API handles IDs
+        label: textInput,
         is_done: false
       };
 
-      add
-      setTodoList([newTodo, ...todoList]);
-      setTextInput("");
+      try {
+        const addedTodo = await addToDo(newTodo);
+        setTodoList([addedTodo, ...todoList]);
+        setTextInput("");
+      } catch (error) {
+        console.error("Error adding todo:", error);
+        // Optionally, add user feedback here (e.g., a notification)
+      }
     }
-  }
-
-  const handleToggle = (id) => {
-    setTodoList(todoList.map(todo => todo.id === id ? { ...todo, is_done: !todo.is_done }: todo));
   };
 
-  const handleDelete = (id) => {
-    setTodoList(todoList.filter(todo => todo.id !== id));
+  const handleToggle = (id,is_done) => {
+    toggleTodo(id, !is_done);
+  };
+
+  const handleDelete = async (id) => {
+    console.log(`I'm in handleDelete, the id is ${id}`);
+    try {
+      const apiUrl = `https://playground.4geeks.com/todo/todos/${id}`;
+      const response = await fetch(apiUrl, {
+        method: 'DELETE',
+        headers: {
+          'accept': 'application/json',
+        },
+      })
+
+      console.log(`The respons from the DELETE is:`,response);
+
+      if (!response.ok){
+        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+      }
+
+      setTodoList(todoList.filter(todo => todo.id !== id));
+
+    } catch (error) {
+      console.error("Failed to delete todo:", error);
+      throw error;
+    }
   }
 
 
